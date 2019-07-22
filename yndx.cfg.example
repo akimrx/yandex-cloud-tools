@@ -1,0 +1,10 @@
+[Auth]
+OAuth_token = 
+
+[Instances]
+# Space separated instance IDs
+IDs = 
+
+[Snapshots]
+# Specify the lifetime of snapshots in days
+Lifetime = 
