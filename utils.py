@@ -43,14 +43,16 @@ class Config:
         config = configparser.RawConfigParser()
         config.read('yndx.cfg')
         oauth_token = config.get('Auth', 'OAuth_token')
-        lifetime = int(config.get('Snapshots', 'Lifetime'))
-        instances_list = config.get('Instances', 'IDs').split(' ')
-        logging.info(f'Config loaded. Snapshot lifetime is {lifetime} days')
-        if oauth_token == '':
+        if not oauth_token:
             logging.error('OAuth_token is empty. Please add oAuth-token to yndx.cfg')
             print('ERROR: OAuth_token is empty. Please add oAuth-token to yndx.cfg')
             quit()
-    except (FileNotFoundError, configparser.NoSectionError):
+        lifetime = config.get('Snapshots', 'Lifetime')
+        if not lifetime:
+           lifetime = 365
+        instances_list = config.get('Instances', 'IDs').split(' ')
+        logging.info(f'Config loaded. Snapshot lifetime is {lifetime} days')
+    except (FileNotFoundError, ValueError, configparser.NoSectionError):
         print('Corrupted config or no config file present. Please check yndx.cfg')
         logging.error('Corrupted config or no config file present. Please check yndx.cfg')
         quit()
@@ -58,7 +60,7 @@ class Config:
 
 class Instance:
     config = Config()
-    
+
     IAM_URL = 'https://iam.api.cloud.yandex.net/iam/v1/tokens'
     SNAP_URL = 'https://compute.api.cloud.yandex.net/compute/v1/snapshots/'
     COMPUTE_URL = 'https://compute.api.cloud.yandex.net/compute/v1/instances/'
@@ -68,7 +70,7 @@ class Instance:
     def __init__(self, instance_id):
         self.iam_token = self.get_iam(self.config.oauth_token)
         self.instance_id = instance_id
-        self.lifetime = self.config.lifetime
+        self.lifetime = int(self.config.lifetime)
         self.headers = {
             'Authorization': f'Bearer {self.iam_token}',
             'content-type': 'application/json'

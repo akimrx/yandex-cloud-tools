@@ -18,7 +18,7 @@ args = parser.parse_args()
 try:
     instances = [inst for inst in config.instances_list if inst != '']
 except Exception as err:
-    logging.info(err)
+    logging.error(err)
     print(err)
 
 
