@@ -2,10 +2,11 @@
 **Simple snapshots tool for [Yandex.Cloud](https://cloud.yandex.com)**
 
 #### Create-snapshots
-Automatically create snapshots for all virtual machines from config file. Sequence for running instances: stop VM – create snapshot – start VM, for stopped instances just create snapshot.
+Automatically create snapshots for virtual machines from config file. Sequence for running instances: stop VM – create snapshot – start VM, for stopped instances just create snapshot.
 
 #### Delete-snapshots
-Automatic deletion of snapshots older than N days. The lifetime is specified in the config file.
+Automatic deletion of snapshots older than N days for instances from config. 
+The lifetime is specified in the config file.
 
 # Get started
 ## Install submodules
