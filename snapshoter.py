@@ -38,7 +38,7 @@ def snapshots_cleaner():
             for snapshot in snapshots:
                 delete_snap = vm.delete_snapshot(snapshot)
                 if vm.operation_complete(delete_snap):
-                    pass  # logging.info from class Instance returned
+                    continue  # logging.info from class Instance returned
 
 
 def snapshots_creater():
@@ -54,12 +54,12 @@ def snapshots_creater():
                     if vm.status() != 'RUNNING':
                         start_vm = vm.start()
                         if vm.operation_complete(start_vm):
-                            pass  # logging.info from class Instance returned
+                            continue  # logging.info from class Instance returned
             else:
                 logging.info(f'Instance {vm.name()} already stopped.')
                 create_snap = vm.create_snapshot()
                 if vm.operation_complete(create_snap):
-                    pass  # logging.info from class Instance returned
+                    continue  # logging.info from class Instance returned
 
 
 def instance_status_info():

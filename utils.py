@@ -190,11 +190,13 @@ class Instance:
                 time.sleep(2)
                 timeout += 2
                 if operation.get('done') is True:
-                    logging.info(f'Operation {operation.get("description")} with ID {operation_id} completed')
-                    return True
+                    msg = f'Operation {operation.get("description")} with ID {operation_id} completed'
+                    logging.info(msg)
+                    return msg
                 elif timeout == 600:
-                    logging.warning(f'Operation {operation.get("description")} with {operation_id} running too long.')
-                    return True
+                    msg = f'Operation {operation.get("description")} with {operation_id} running too long.'
+                    logging.warning(msg)
+                    return msg
 
     @retry((ConnectionError, Timeout))
     def start(self):
