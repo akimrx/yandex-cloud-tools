@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
+from datetime import datetime
 
 from common.logger import logger
-
-from datetime import datetime
 from common.utils import Config, Instance
 from common.decorators import human_time
 
@@ -99,14 +98,16 @@ if __name__ == '__main__':
     if args.create:
         snapshots_creater()
         instance_status_info()
-        delta_time(started, end_time())
+
     elif args.delete:
         snapshots_cleaner()
-        delta_time(started, end_time())
+
     elif args.full:
         snapshots_cleaner()
         snapshots_creater()
         instance_status_info()
-        delta_time(started, end_time())
+
     else:
         print('Input Error. Use --help for more details.')
+
+    delta_time(started, end_time())
