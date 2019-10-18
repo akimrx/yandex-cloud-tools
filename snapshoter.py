@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 
-import logging
 import argparse
+
+from common.logger import logger
+
 from datetime import datetime
-from utils import Config, Instance
+from common.utils import Config, Instance
+from common.decorators import human_time
+
 
 config = Config()
 
 parser = argparse.ArgumentParser(description='Snapshots-tools. To work, you must add instances id to the config file (space separated if multiple)')
-parser.add_argument('-v', '--version', action='version',  version='yc-snapshoter 0.3.0')
+parser.add_argument('-v', '--version', action='version',  version='yc-snapshoter 0.3.1')
 parser.add_argument('-c', '--create', action='store_true', required=False, help='create snapshots for VMs')
 parser.add_argument('-d', '--delete', action='store_true', required=False, help='delete all old snapshots for instances')
 parser.add_argument('-f', '--full', action='store_true', required=False, help='create snapshots and delete old snapshots for instances')
@@ -18,15 +22,33 @@ args = parser.parse_args()
 try:
     instances = [inst for inst in config.instances_list if inst != '']
 except Exception as err:
-    logging.error(err)
+    logger.error(err)
     print(err)
 
 
 if not instances:
     msg = 'Instances ID is empty. Please type instance_id into config file. If you have multiple VMs, separate them with a space'
-    logging.warning(msg)
+    logger.warning(msg)
     print(msg)
     quit()
+
+
+def start_time():
+    calltime = datetime.now()
+    logger.info('Start time: {t}'.format(t=calltime))
+    return calltime
+
+
+def end_time():
+    calltime = datetime.now()
+    logger.info('End time: {t}'.format(t=calltime))
+    return datetime.now()
+
+
+def delta_time(start, end):
+    et = int((end - start).total_seconds())
+    m_et = human_time(et, 2)
+    logger.info('Elapsed time: {et}'.format(et=m_et))
 
 
 def snapshots_cleaner():
@@ -38,7 +60,7 @@ def snapshots_cleaner():
             for snapshot in snapshots:
                 delete_snap = vm.delete_snapshot(snapshot)
                 if vm.operation_complete(delete_snap):
-                    continue  # logging.info from class Instance returned
+                    continue  # logger.info from class Instance returned
 
 
 def snapshots_creater():
@@ -54,12 +76,12 @@ def snapshots_creater():
                     if vm.status() != 'RUNNING':
                         start_vm = vm.start()
                         if vm.operation_complete(start_vm):
-                            continue  # logging.info from class Instance returned
+                            continue  # logger.info from class Instance returned
             else:
-                logging.info(f'Instance {vm.name()} already stopped.')
+                logger.info(f'Instance {vm.name()} already stopped.')
                 create_snap = vm.create_snapshot()
                 if vm.operation_complete(create_snap):
-                    continue  # logging.info from class Instance returned
+                    continue  # logger.info from class Instance returned
 
 
 def instance_status_info():
@@ -67,18 +89,24 @@ def instance_status_info():
     for instance in instances:
         vm = Instance(instance)
         if vm.get_data():
-            logging.info(vm)
+            logger.info(vm)
             print(vm)
 
 
-if args.create:
-    snapshots_creater()
-    vm_status_info()
-elif args.delete:
-    snapshots_cleaner()
-elif args.full:
-    snapshots_cleaner()
-    snapshots_creater()
-    instance_status_info()
-else:
-    print('Input Error. Use --help for more details.')
+if __name__ == '__main__':
+    started = start_time()
+
+    if args.create:
+        snapshots_creater()
+        instance_status_info()
+        delta_time(started, end_time())
+    elif args.delete:
+        snapshots_cleaner()
+        delta_time(started, end_time())
+    elif args.full:
+        snapshots_cleaner()
+        snapshots_creater()
+        instance_status_info()
+        delta_time(started, end_time())
+    else:
+        print('Input Error. Use --help for more details.')
