@@ -16,11 +16,12 @@ The lifetime is specified in the config file.
 * [Get token here](https://oauth.yandex.com/authorize?response_type=token&client_id=1a6990aa636648e9b2ef855fa7bec2fb)
 
 ### Edit config file
-* Rename `mv yndx.cfg.example yndx.cfg`
-* Edit `vim ydnx.cfg`
+* Create config dir `mkdir -p ~/.ya-tools`
+* Edit `vim ydnx.cfg.example`
 * Insert OAuth-token into config file.
 * Enter instance ID into config file. For multiple instances enter space separated IDs (without the quotes).
 * Enter snapshots lifetime in days.
+* Move file `mv yndx.cfg.example ~/.ya-tools/yndx.cfg`
 Example config file:
 ```
 [Auth]

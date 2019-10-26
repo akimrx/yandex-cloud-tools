@@ -32,18 +32,6 @@ if not instances:
     quit()
 
 
-def start_time():
-    calltime = datetime.now()
-    logger.info('Start time: {t}'.format(t=calltime))
-    return calltime
-
-
-def end_time():
-    calltime = datetime.now()
-    logger.info('End time: {t}'.format(t=calltime))
-    return datetime.now()
-
-
 def delta_time(start, end):
     et = int((end - start).total_seconds())
     m_et = human_time(et, 2)
@@ -59,7 +47,7 @@ def snapshots_cleaner():
             for snapshot in snapshots:
                 delete_snap = vm.delete_snapshot(snapshot)
                 if vm.operation_complete(delete_snap):
-                    continue  # logger.info from class Instance returned
+                    continue
 
 
 def snapshots_creater():
@@ -75,12 +63,12 @@ def snapshots_creater():
                     if vm.status() != 'RUNNING':
                         start_vm = vm.start()
                         if vm.operation_complete(start_vm):
-                            continue  # logger.info from class Instance returned
+                            continue
             else:
                 logger.info(f'Instance {vm.name()} already stopped.')
                 create_snap = vm.create_snapshot()
                 if vm.operation_complete(create_snap):
-                    continue  # logger.info from class Instance returned
+                    continue
 
 
 def instance_status_info():
@@ -93,7 +81,7 @@ def instance_status_info():
 
 
 if __name__ == '__main__':
-    started = start_time()
+    started = datetime.now()
 
     if args.create:
         snapshots_creater()
@@ -110,4 +98,4 @@ if __name__ == '__main__':
     else:
         print('Input Error. Use --help for more details.')
 
-    delta_time(started, end_time())
+    delta_time(started, datetime.now())
