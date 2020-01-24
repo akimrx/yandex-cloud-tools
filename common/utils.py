@@ -5,39 +5,50 @@ import pathlib
 import requests
 import configparser
 
+from os import getenv
+
 from .logger import logger
 from .decorators import retry
 
 from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout
 
+SERVERLESS = False
+
 
 class Config:
-    try:
-        config_path = pathlib.Path.home().joinpath('.ya-tools/')
 
-        if not os.path.exists(config_path):
-             os.system('mkdir -p {path}'.format(path=config_path))
+    if SERVERLESS:
+        oauth_token = getenv('TOKEN')
+        lifetime = getenv('LIFETIME')
+        instances_list = getenv('INSTANCES').split(',')
 
-        config_file = pathlib.Path.home().joinpath('.ya-tools/yndx.cfg')
-        config = configparser.RawConfigParser()
-        config.read(config_file)
-        oauth_token = config.get('Auth', 'OAuth_token')
+    else:
+        try:
+            config_path = pathlib.Path.home().joinpath('.ya-tools/')
 
-        if not oauth_token:
-            logger.error('OAuth_token is empty. Please add oAuth-token to ~/.ya-tools/yndx.cfg')
+            if not os.path.exists(config_path):
+                os.system('mkdir -p {path}'.format(path=config_path))
+
+            config_file = pathlib.Path.home().joinpath('.ya-tools/yndx.cfg')
+            config = configparser.RawConfigParser()
+            config.read(config_file)
+
+            oauth_token = config.get('Auth', 'OAuth_token')
+            if not oauth_token:
+                logger.error('OAuth_token is empty. Please add oAuth-token to ~/.ya-tools/yndx.cfg')
+                quit()
+
+            lifetime = config.get('Snapshots', 'Lifetime')
+            if not lifetime:
+                lifetime = 365
+
+            instances_list = config.get('Instances', 'IDs').split(' ')
+            logger.info(f'Config loaded. Snapshot lifetime is {lifetime} days')
+
+        except (FileNotFoundError, ValueError, configparser.NoSectionError):
+            logger.error('Corrupted config or no config file present. Please verify or create ~/.ya-tools/yndx.cfg')
             quit()
-
-        lifetime = config.get('Snapshots', 'Lifetime')
-
-        if not lifetime:
-           lifetime = 365
-        instances_list = config.get('Instances', 'IDs').split(' ')
-        logger.info(f'Config loaded. Snapshot lifetime is {lifetime} days')
-
-    except (FileNotFoundError, ValueError, configparser.NoSectionError):
-        logger.error('Corrupted config or no config file present. Please verify or create ~/.ya-tools/yndx.cfg')
-        quit()
 
 
 class Instance:

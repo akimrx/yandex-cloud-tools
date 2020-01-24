@@ -82,6 +82,15 @@ def instance_status_info():
             logger.info(vm)
 
 
+# TODO
+def serverless(event, context):
+    started = datetime.now()
+    snapshots_cleaner()
+    snapshots_creater()
+    instance_status_info()
+    delta_time(started, datetime.now())
+
+
 if __name__ == '__main__':
     started = datetime.now()
 
