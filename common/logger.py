@@ -3,8 +3,6 @@ import logging
 
 from logging.handlers import RotatingFileHandler
 
-if not os.path.exists('logs'):
-    os.mkdir('logs')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
