@@ -38,8 +38,8 @@ Lifetime = 14
 
 # Usage
 ```
-akimrx@thinkpad:~/github/yandex-cloud-tools$ ./snapshoter.py --help
-usage: snapshoter.py [-h] [-v] [-c] [-d] [-f]
+akimrx@thinkpad:~/github/yandex-cloud-tools$ ./snaps.py --help
+usage: snaps.py [-h] [-v] [-c] [-d] [-f]
 
 Snapshots-tools. To work, you must add instances id to the config file (space separated if multiple)
 
@@ -48,11 +48,10 @@ optional arguments:
   -v, --version  show program's version number and exit
   -c, --create   create snapshots for VMs
   -d, --delete   delete all old snapshots for instances
-  -f, --full      create snapshots and delete old snapshots for instances
+  -f, --full     create snapshots and delete old snapshots for instances
 
 ```
 
 # Shedule with Cron
 You can run the script manually as needed, or create a task in the scheduler [Cron](https://help.ubuntu.com/community/CronHowto). 
 
-**If you use the scheduler [Cron](https://help.ubuntu.com/community/CronHowto), you must place the config file in your home directory (/home/username/yndx.cfg).**
