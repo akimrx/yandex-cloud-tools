@@ -36,7 +36,6 @@ def delta_time(start, end):
     logger.info('Elapsed time: {et}'.format(et=m_et))
 
 
-# TODO: async
 def snapshots_cleaner():
     logger.info(f'Search and deleting snapshots older than {config.lifetime} days')
     for instance in instances:
@@ -50,7 +49,6 @@ def snapshots_cleaner():
                     continue
 
 
-# TODO: async
 def snapshots_creater():
     logger.info('Creating snapshots')
     for instance in instances:
@@ -82,13 +80,12 @@ def instance_status_info():
             logger.info(vm)
 
 
-# TODO
-def serverless(event, context):
-    started = datetime.now()
-    snapshots_cleaner()
-    snapshots_creater()
-    instance_status_info()
-    delta_time(started, datetime.now())
+# def serverless(event, context):
+#     started = datetime.now()
+#     snapshots_cleaner()
+#     snapshots_creater()
+#     instance_status_info()
+#     delta_time(started, datetime.now())
 
 
 if __name__ == '__main__':
