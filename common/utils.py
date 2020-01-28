@@ -43,7 +43,7 @@ class Config:
 
             lifetime = config.get('Snapshots', 'Lifetime')
             if not lifetime:
-                logging.warning('Lifetime is empty. Using default value: 365 days')
+                logger.warning('Lifetime is empty. Using default value: 365 days')
                 lifetime = 365
 
             instances_list = config.get('Instances', 'IDs').split(' ')

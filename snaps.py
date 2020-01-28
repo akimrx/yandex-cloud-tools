@@ -21,12 +21,12 @@ args = parser.parse_args()
 
 
 try:
-    instances = [inst for inst in config.instances_list if inst != '']
+    INSTANCES = [inst for inst in config.instances_list if inst != '']
 except Exception as err:
     logger.error(err)
 
 
-if not instances:
+if not INSTANCES:
     msg = 'Instances ID is empty. Please type instance_id into config file. If you have multiple VMs, separate them with a space'
     logger.warning(msg)
     quit()
@@ -40,7 +40,7 @@ def delta_time(start, end):
 
 def snapshots_cleaner():
     logger.info(f'Search and deleting snapshots older than {config.lifetime} days')
-    for instance in instances:
+    for instance in INSTANCES:
         vm = Instance(instance)
         snapshots = vm.get_old_snapshots()
 
@@ -69,7 +69,7 @@ async def async_snapshots_cleaner(instance):
 
 def snapshots_creater():
     logger.info('Creating snapshots')
-    for instance in instances:
+    for instance in INSTANCES:
         vm = Instance(instance)
 
         if vm.get_data():
@@ -122,7 +122,7 @@ def run_stopped_instances():
 
 
 def creater_run():
-    snapshot_tasks = [async_snapshots_creater(instance) for instance in instances]
+    snapshot_tasks = [async_snapshots_creater(instance) for instance in INSTANCES]
     create_snap_loop = asyncio.get_event_loop()
     create_snap_loop.run_until_complete(asyncio.wait(snapshot_tasks))
 
@@ -131,14 +131,14 @@ def creater_run():
 
 
 def cleaner_run():
-    tasks = [async_snapshots_cleaner(instance) for instance in instances]
+    tasks = [async_snapshots_cleaner(instance) for instance in INSTANCES]
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.wait(tasks))
 
 
 def instance_status():
     logger.info('Getting instances status')
-    for instance in instances:
+    for instance in INSTANCES:
         vm = Instance(instance)
         logger.info(vm)
 
