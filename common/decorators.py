@@ -3,6 +3,7 @@ from functools import wraps
 
 from .logger import logger
 
+
 def retry(exceptions, tries=4, delay=5, backoff=2, logger=True):
     def retry_decorator(func):
         @wraps(func)

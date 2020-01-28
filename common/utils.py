@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import asyncio
 import pathlib
 import requests
 import configparser
@@ -14,7 +15,7 @@ from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout
 
 
-SERVERLESS = False
+SERVERLESS = False  # later
 
 
 class Config:
@@ -42,6 +43,7 @@ class Config:
 
             lifetime = config.get('Snapshots', 'Lifetime')
             if not lifetime:
+                logging.warning('Lifetime is empty. Using default value: 365 days')
                 lifetime = 365
 
             instances_list = config.get('Instances', 'IDs').split(' ')
@@ -69,6 +71,7 @@ class Instance:
             'Authorization': f'Bearer {self.iam_token}',
             'content-type': 'application/json'
         }
+        self.instance_data = self.get_data()
 
     @retry((ConnectionError, Timeout))
     def get_iam(self, token):
@@ -102,17 +105,17 @@ class Instance:
 
     @property
     def folder_id(self):
-        folder_id = self.get_data().get('folderId')
+        folder_id = self.instance_data.get('folderId')
         return folder_id
 
     @property
     def name(self):
-        name = self.get_data().get('name')
+        name = self.instance_data.get('name')
         return name
 
     @property
     def boot_disk(self):
-        boot_disk = self.get_data()['bootDisk']['diskId']
+        boot_disk = self.instance_data['bootDisk']['diskId']
         return boot_disk
 
     @property
@@ -195,6 +198,24 @@ class Instance:
             logger.warning('Connection error. Please check your network connection')
         except Exception as err:
             logger.error(f'Error in operation_status: {err}')
+
+    async def async_operation_complete(self, operation_id):
+        if operation_id:
+            timeout = 0
+            while True:
+                operation = self.operation_status(operation_id)
+                await asyncio.sleep(2)
+                timeout += 2
+
+                if operation.get('done') is True:
+                    msg = f'Operation {operation.get("description")} with ID {operation_id} completed'
+                    logger.info(msg)
+                    return msg
+
+                elif timeout == 600:
+                    msg = f'Operation {operation.get("description")} with {operation_id} running too long.'
+                    logger.warning(msg)
+                    return msg
 
     def operation_complete(self, operation_id):
         if operation_id:

@@ -1,8 +1,10 @@
 # Yandex Cloud Tools
 **Simple snapshots tool for [Yandex.Cloud](https://cloud.yandex.com)**
 
+**Required Python 3.6+**
+
 #### Create-snapshots
-Automatically create snapshots for virtual machines from config file. Sequence for running instances: stop VM – create snapshot – start VM, for stopped instances just create snapshot.
+Automatically create snapshots for VM from config file (only boot-disks). Sequence for running instances: stop VM – create snapshot – start VM, for stopped instances just create snapshot.
 
 #### Delete-snapshots
 Automatic deletion of snapshots older than N days for instances from config. 
@@ -49,6 +51,8 @@ optional arguments:
   -c, --create   create snapshots for VMs
   -d, --delete   delete all old snapshots for instances
   -f, --full     create snapshots and delete old snapshots for instances
+  --async        use this arg only if disks count <= 15 (active-operations-count limit)')
+
 
 ```
 
