@@ -51,7 +51,7 @@ optional arguments:
   -c, --create   create snapshots for VMs
   -d, --delete   delete all old snapshots for instances
   -f, --full     create snapshots and delete old snapshots for instances
-  --async        use this arg only if disks count <= 15 (active-operations-count limit)')
+  --async        use this arg only if disks count <= 15 (active-operations-count limit)
 
 
 ```
