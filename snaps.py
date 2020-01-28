@@ -16,7 +16,7 @@ parser.add_argument('-v', '--version', action='version',  version='yc-snapshoter
 parser.add_argument('-c', '--create', action='store_true', required=False, help='create snapshots for VMs')
 parser.add_argument('-d', '--delete', action='store_true', required=False, help='delete all old snapshots for instances')
 parser.add_argument('-f', '--full', action='store_true', required=False, help='create snapshots and delete old snapshots for instances')
-parser.add_argument('--async', action='store_true', required=False, help='use this arg only if disks count <= 15 (active-operations-count limit)')
+parser.add_argument('--run-async', '--async', action='store_true', required=False, help='use this arg only if disks count <= 15 (active-operations-count limit)')
 args = parser.parse_args()
 
 
@@ -147,20 +147,20 @@ if __name__ == '__main__':
     started = datetime.now()
 
     if args.create:
-        if args.async:
+        if args.run_async:
             creater_run()
         else:
             snapshots_creater()
             instance_status()
 
     elif args.delete:
-        if args.async:
+        if args.run_async:
             cleaner_run()
         else:
             snapshots_cleaner()
 
     elif args.full:
-        if args.async:
+        if args.run_async:
             cleaner_run()
             creater_run()
         else:
