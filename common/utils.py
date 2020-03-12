@@ -265,10 +265,10 @@ class Instance:
                 # Return operation ID
                 return res.get('id')
 
-        elif self.status() == 'STOPPED':
+        elif self.status == 'STOPPED':
             logger.info(f'Instance {self.name} already stopped.')
         else:
-            loggin.warning(f'Instance {self.name} has an invalid state for this operation.')
+            logger.warning(f'Instance {self.name} has an invalid state for this operation.')
 
     @retry((ConnectionError, Timeout))
     def create_snapshot(self):

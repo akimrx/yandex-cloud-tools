@@ -2,3 +2,5 @@ deprecated
 yndx.cfg
 __pycache__
 *.log
+.DS_Store
+yndx.cfg.bak
