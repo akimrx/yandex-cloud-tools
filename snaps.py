@@ -2,11 +2,13 @@
 
 import asyncio
 import argparse
+import logging
 from datetime import datetime
 
-from common.logger import logger
 from common.utils import Config, Instance
 from common.decorators import human_time
+
+logger = logging.getLogger(__name__)
 
 STOPPED_INSTANCES = []
 config = Config()

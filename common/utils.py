@@ -2,18 +2,20 @@ import os
 import json
 import time
 import asyncio
+import logging
 import pathlib
 import requests
 import configparser
 
 from os import getenv
 
-from .logger import logger
 from .decorators import retry
 
 from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout
 
+
+logger = logging.getLogger(__name__)
 
 SERVERLESS = False  # later
 

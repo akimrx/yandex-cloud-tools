@@ -1,7 +1,8 @@
+import logging
 import threading
 from functools import wraps
 
-from .logger import logger
+logger = logging.getLogger(__name__)
 
 
 def retry(exceptions, tries=4, delay=5, backoff=2, logger=True):
