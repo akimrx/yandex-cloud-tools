@@ -66,11 +66,11 @@ async def async_snapshots_cleaner(instance):
         return
 
     for snapshot in snapshots:
-        delete_snap = await vm.async_operation_complete(vm.delete_snapshot(snapshot))
+        await vm.async_operation_complete(vm.delete_snapshot(snapshot))
 
 
 def snapshots_creater():
-    logger.info('Creating snapshots')
+    logger.info('Preparing instances to create a snapshot')
     for instance in INSTANCES:
         vm = Instance(instance)
 
@@ -94,36 +94,35 @@ def snapshots_creater():
 
 async def async_snapshots_creater(instance):
     vm = Instance(instance)
-    logger.info(f'Creating snapshot for instance {vm.name}')
+    logger.info(f'Preparing instance {vm.name} to create a snapshot')
     if vm.get_data():
         if vm.status != 'STOPPED':
             stop_vm = vm.operation_complete(vm.stop())
             STOPPED_INSTANCES.append(instance)
             if stop_vm:
-                snap_create = await vm.async_operation_complete(vm.create_snapshot())
-                return snap_create
+                await vm.async_operation_complete(vm.create_snapshot())
 
         else:
             logger.info(f'Instance {vm.name} already stopped.')
-            create_snap = await vm.async_operation_complete(vm.create_snapshot())
-            return create_snap
+            await vm.async_operation_complete(vm.create_snapshot())
 
 
 async def instance_run(instance):
     vm = Instance(instance)
-
     if vm.status != 'RUNNING':
-        start_vm = await vm.async_operation_complete(vm.start())
-        return start_vm
+        await vm.async_operation_complete(vm.start())
 
 
 def run_stopped_instances():
+    if not STOPPED_INSTANCES:
+        return
+
     vm_start_task = [instance_run(instance) for instance in STOPPED_INSTANCES if STOPPED_INSTANCES]
     vm_loop = asyncio.get_event_loop()
     vm_loop.run_until_complete(asyncio.wait(vm_start_task))
 
 
-def creater_run():
+def async_creater_run():
     snapshot_tasks = [async_snapshots_creater(instance) for instance in INSTANCES]
     create_snap_loop = asyncio.get_event_loop()
     create_snap_loop.run_until_complete(asyncio.wait(snapshot_tasks))
@@ -132,7 +131,7 @@ def creater_run():
     instance_status()
 
 
-def cleaner_run():
+def async_cleaner_run():
     tasks = [async_snapshots_cleaner(instance) for instance in INSTANCES]
     loop = asyncio.get_event_loop()
     loop.run_until_complete(asyncio.wait(tasks))
@@ -150,21 +149,21 @@ if __name__ == '__main__':
 
     if args.create:
         if args.run_async:
-            creater_run()
+            async_creater_run()
         else:
             snapshots_creater()
             instance_status()
 
     elif args.delete:
         if args.run_async:
-            cleaner_run()
+            async_cleaner_run()
         else:
             snapshots_cleaner()
 
     elif args.full:
         if args.run_async:
-            cleaner_run()
-            creater_run()
+            async_cleaner_run()
+            async_creater_run()
         else:
             snapshots_cleaner()
             snapshots_creater()
