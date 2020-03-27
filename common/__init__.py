@@ -11,7 +11,7 @@ logging.basicConfig(level=LOGLEVEL,
     format=logformat,
     datefmt='%d/%b/%y %H:%M:%S', 
     handlers=[
-        logging.FileHandler('logs/bot.log'),
+        logging.FileHandler('logs/snaps.log'),
         logging.StreamHandler()
     ]
 )

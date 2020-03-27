@@ -14,7 +14,7 @@ STOPPED_INSTANCES = []
 config = Config()
 
 parser = argparse.ArgumentParser(description='Snapshots-tools. To work, you must add instances id to the config file (space separated if multiple)')
-parser.add_argument('-v', '--version', action='version',  version='yc-snapshoter 0.4.1')
+parser.add_argument('-v', '--version', action='version',  version='yc-snaps 0.4.2')
 parser.add_argument('-c', '--create', action='store_true', required=False, help='create snapshots for VMs')
 parser.add_argument('-d', '--delete', action='store_true', required=False, help='delete all old snapshots for instances')
 parser.add_argument('-f', '--full', action='store_true', required=False, help='create snapshots and delete old snapshots for instances')
