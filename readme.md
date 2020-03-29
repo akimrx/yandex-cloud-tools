@@ -56,6 +56,8 @@ optional arguments:
 
 ```
 
+* **Log file path:** `path/to/yandex-cloud-tools/logs/snaps.log`
+
 # Shedule with Cron
 You can run the script manually as needed, or create a task in the scheduler [Cron](https://help.ubuntu.com/community/CronHowto). 
 
