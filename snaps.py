@@ -1,16 +1,35 @@
 #!/usr/bin/env python3
 
+import os
 import asyncio
 import argparse
 import logging
 from datetime import datetime
 
-from common.utils import Config, Instance
-from common.decorators import human_time
+BASEDIR = os.path.abspath(os.path.dirname(__file__))
+LOGDIR = os.path.join(BASEDIR, 'logs')
+
+if not os.path.exists(LOGDIR):
+    os.mkdir(LOGDIR)
+
+logging.basicConfig(level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] %(message)s',
+    datefmt='%d/%b/%y %H:%M:%S', 
+    handlers=[
+        logging.FileHandler(os.path.join(LOGDIR, 'snaps.log')),
+        logging.StreamHandler()
+    ]
+)
 
 logger = logging.getLogger(__name__)
 
+from common.utils import Config, Instance
+from common.decorators import human_time
+
 STOPPED_INSTANCES = []
+NEGATIVE_STATES = ['STOPPED', 'STOPPING', 'ERROR', 'CRASHED']
+POSITIVE_STATES = ['RUNNING', 'PROVISIONING', 'CREATING']
+
 config = Config()
 
 parser = argparse.ArgumentParser(description='Snapshots-tools. To work, you must add instances id to the config file (space separated if multiple)')
@@ -37,7 +56,7 @@ if not INSTANCES:
 def delta_time(start, end):
     et = int((end - start).total_seconds())
     m_et = human_time(et, 2)
-    logger.info('Elapsed time: {et}'.format(et=m_et))
+    logger.info(f'Elapsed time: {m_et}')
 
 
 def snapshots_cleaner():
@@ -75,12 +94,12 @@ def snapshots_creater():
         vm = Instance(instance)
 
         if vm.get_data():
-            if vm.status != 'STOPPED':
+            if vm.status not in NEGATIVE_STATES:
                 stop_vm = vm.stop()
                 if vm.operation_complete(stop_vm):
                     snap_create = vm.create_snapshot()
                 if vm.operation_complete(snap_create):
-                    if vm.status != 'RUNNING':
+                    if vm.status not in POSITIVE_STATES:
                         start_vm = vm.start()
                         if vm.operation_complete(start_vm):
                             continue
@@ -96,7 +115,7 @@ async def async_snapshots_creater(instance):
     vm = Instance(instance)
     logger.info(f'Preparing instance {vm.name} to create a snapshot')
     if vm.get_data():
-        if vm.status != 'STOPPED':
+        if vm.status not in NEGATIVE_STATES:
             stop_vm = vm.operation_complete(vm.stop())
             STOPPED_INSTANCES.append(instance)
             if stop_vm:
@@ -109,7 +128,7 @@ async def async_snapshots_creater(instance):
 
 async def instance_run(instance):
     vm = Instance(instance)
-    if vm.status != 'RUNNING':
+    if vm.status not in POSITIVE_STATES:
         await vm.async_operation_complete(vm.start())
 
 
