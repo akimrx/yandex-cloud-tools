@@ -5,3 +5,4 @@ __pycache__
 *.log
 .DS_Store
 yndx.cfg.bak
+tests.py
