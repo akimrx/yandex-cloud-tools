@@ -127,27 +127,42 @@ class Instance:
 
     @property
     def folder_id(self):
+        if self.instance_data is None:
+            return
+
         folder_id = self.instance_data.get('folderId')
         return folder_id
 
     @property
     def name(self):
+        if self.instance_data is None:
+            return
+
         name = self.instance_data.get('name')
         return name
 
     @property
     def boot_disk(self):
+        if self.instance_data is None:
+            return
+
         boot_disk = self.instance_data['bootDisk']['diskId']
         return boot_disk
 
     @property
     def secondary_disks(self):
+        if self.instance_data is None:
+            return
+
         _disks = self.instance_data.get('secondaryDisks')
         disks = [x.get('diskId') for x in _disks] if _disks else []
         return disks
 
     @property
     def status(self):
+        if self.instance_data is None:
+            return 'NON-EXISTENT'
+
         status = self.get_data().get('status')
         return status
 

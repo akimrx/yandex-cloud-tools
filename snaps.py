@@ -41,16 +41,21 @@ parser.add_argument('--run-async', '--async', action='store_true', required=Fals
 args = parser.parse_args()
 
 
+# Instances generator from config
 try:
     INSTANCES = [inst for inst in config.instances_list if inst != '']
 except Exception as err:
     logger.error(err)
 
-
 if not INSTANCES:
     msg = 'Instances ID is empty. Please type instance_id into config file. If you have multiple VMs, separate them with a space'
     logger.warning(msg)
     quit()
+
+# Delete non-existent instances
+for instance_id in INSTANCES:
+    if Instance(instance_id).name is None:
+        INSTANCES.remove(instance_id)
 
 
 def delta_time(start, end):
@@ -160,7 +165,8 @@ def instance_status():
     logger.info('Getting instances status')
     for instance in INSTANCES:
         vm = Instance(instance)
-        logger.info(vm)
+        if vm.name is not None:
+            logger.info(vm)
 
 
 if __name__ == '__main__':
