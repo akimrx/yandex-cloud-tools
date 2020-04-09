@@ -4,10 +4,26 @@ import os
 import asyncio
 import argparse
 import logging
+
 from datetime import datetime
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
 LOGDIR = os.path.join(BASEDIR, 'logs')
+STOPPED_INSTANCES = []
+
+'''Preparing'''
+
+parser = argparse.ArgumentParser(description='YC Snapshotter. To work, you must add instances id to the config file (space separated if multiple)')
+parser.add_argument('-v', '--version', action='version',  version='yc-snaps 0.4.3')
+parser.add_argument('-c', '--create', action='store_true', required=False, help='create snapshots for VMs')
+parser.add_argument('-d', '--delete', action='store_true', required=False, help='delete all old snapshots for instances')
+parser.add_argument('-f', '--full', action='store_true', required=False, help='create snapshots and delete old snapshots for instances')
+parser.add_argument('--run-async', '--async', action='store_true', required=False, help='use this arg only if disks count <= 15 (active-operations-count limit)')
+args = parser.parse_args()
+
+if not any(vars(args).values()):
+    print('Input Error. Use --help for more details.')
+    quit()
 
 if not os.path.exists(LOGDIR):
     os.mkdir(LOGDIR)
@@ -23,21 +39,11 @@ logging.basicConfig(level=logging.INFO,
 
 logger = logging.getLogger(__name__)
 
-from common.utils import Config, Instance, NEGATIVE_STATES, POSITIVE_STATES
+from common.compute import Instance, NEGATIVE_STATES, POSITIVE_STATES
+from common.config import Config as config
 from common.decorators import human_time
 
-STOPPED_INSTANCES = []
-
-config = Config()
-
-parser = argparse.ArgumentParser(description='Snapshots-tools. To work, you must add instances id to the config file (space separated if multiple)')
-parser.add_argument('-v', '--version', action='version',  version='yc-snaps 0.4.2')
-parser.add_argument('-c', '--create', action='store_true', required=False, help='create snapshots for VMs')
-parser.add_argument('-d', '--delete', action='store_true', required=False, help='delete all old snapshots for instances')
-parser.add_argument('-f', '--full', action='store_true', required=False, help='create snapshots and delete old snapshots for instances')
-parser.add_argument('--run-async', '--async', action='store_true', required=False, help='use this arg only if disks count <= 15 (active-operations-count limit)')
-args = parser.parse_args()
-
+logger.info(f'Snapshot lifetime is {config.lifetime} days')
 
 # Instances generator from config
 try:
@@ -55,6 +61,8 @@ for instance_id in INSTANCES:
     if Instance(instance_id).name is None:
         INSTANCES.remove(instance_id)
 
+
+'''Functions'''
 
 def delta_time(start, end):
     et = int((end - start).total_seconds())
