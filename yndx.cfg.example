@@ -8,3 +8,8 @@ IDs =
 [Snapshots]
 # Specify the lifetime of snapshots in days
 Lifetime = 
+
+[Watchdog]
+# Specify instance IDs in targets, space separated if multiple
+targets = 
+delay = 10

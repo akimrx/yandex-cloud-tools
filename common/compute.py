@@ -1,60 +1,25 @@
-import os
 import json
 import time
 import asyncio
 import logging
-import pathlib
 import requests
-import configparser
-
-from os import getenv
-
-from .decorators import retry
 
 from datetime import datetime
 from requests.exceptions import ConnectionError, Timeout
 
+from common.config import Config as config
+from common.decorators import retry
 
 logger = logging.getLogger(__name__)
 
-SERVERLESS = False  # later
 NEGATIVE_STATES = ['STOPPED', 'STOPPING', 'ERROR', 'CRASHED']
 POSITIVE_STATES = ['RUNNING', 'PROVISIONING', 'CREATING']
 
-class Config:
-
-    if SERVERLESS:
-        oauth_token = getenv('TOKEN')
-        lifetime = getenv('LIFETIME')
-        instances_list = getenv('INSTANCES').split(',')
-
-    else:
-        try:
-            config_path = pathlib.Path.home().joinpath('.ya-tools/')
-
-            if not os.path.exists(config_path):
-                os.system('mkdir -p {path}'.format(path=config_path))
-
-            config_file = pathlib.Path.home().joinpath('.ya-tools/yndx.cfg')
-            config = configparser.RawConfigParser()
-            config.read(config_file)
-
-            oauth_token = config.get('Auth', 'OAuth_token')
-            if not oauth_token:
-                logger.error('OAuth_token is empty. Please add oAuth-token to ~/.ya-tools/yndx.cfg')
-                quit()
-
-            lifetime = config.get('Snapshots', 'Lifetime')
-            if not lifetime:
-                logger.warning('Lifetime is empty. Using default value: 365 days')
-                lifetime = 365
-
-            instances_list = config.get('Instances', 'IDs').split(' ')
-            logger.info(f'Config loaded. Snapshot lifetime is {lifetime} days')
-
-        except (FileNotFoundError, ValueError, configparser.NoSectionError):
-            logger.error('Corrupted config or no config file present. Please verify or create ~/.ya-tools/yndx.cfg')
-            quit()
+IAM_URL = 'https://iam.api.cloud.yandex.net/iam/v1/tokens'
+SNAP_URL = 'https://compute.api.cloud.yandex.net/compute/v1/snapshots/'
+COMPUTE_URL = 'https://compute.api.cloud.yandex.net/compute/v1/instances/'
+DISK_URL = 'https://compute.api.cloud.yandex.net/compute/v1/disks/'
+OPERATION_URL = 'https://operation.api.cloud.yandex.net/operations/'
 
 
 class Instance:
@@ -78,18 +43,10 @@ class Instance:
       delete_snapshot() -> return operaion id as str 
     '''
 
-    config = Config()
-
-    IAM_URL = 'https://iam.api.cloud.yandex.net/iam/v1/tokens'
-    SNAP_URL = 'https://compute.api.cloud.yandex.net/compute/v1/snapshots/'
-    COMPUTE_URL = 'https://compute.api.cloud.yandex.net/compute/v1/instances/'
-    DISK_URL = 'https://compute.api.cloud.yandex.net/compute/v1/disks/'
-    OPERATION_URL = 'https://operation.api.cloud.yandex.net/operations/'
-
     def __init__(self, instance_id):
-        self.iam_token = self.get_iam(self.config.oauth_token)
+        self.iam_token = self.get_iam(config.oauth_token)
         self.instance_id = instance_id
-        self.lifetime = int(self.config.lifetime)
+        self.lifetime = int(config.lifetime)
         self.headers = {
             'Authorization': f'Bearer {self.iam_token}',
             'content-type': 'application/json'
@@ -98,7 +55,7 @@ class Instance:
 
     @retry((ConnectionError, Timeout))
     def get_iam(self, token):
-        r = requests.post(self.IAM_URL, json={'yandexPassportOauthToken': token})
+        r = requests.post(IAM_URL, json={'yandexPassportOauthToken': token})
         data = json.loads(r.text)
 
         if r.status_code != 200:
@@ -116,7 +73,7 @@ class Instance:
 
     @retry((ConnectionError, Timeout))
     def get_data(self):
-        r = requests.get(self.COMPUTE_URL + self.instance_id, headers=self.headers)
+        r = requests.get(COMPUTE_URL + self.instance_id, headers=self.headers)
         res = json.loads(r.text)
 
         if r.status_code == 404:
@@ -190,7 +147,7 @@ class Instance:
     @retry((ConnectionError, Timeout))
     def get_all_snapshots(self):
         try:
-            r = requests.get(self.SNAP_URL, headers=self.headers, json={'folderId': self.folder_id})
+            r = requests.get(SNAP_URL, headers=self.headers, json={'folderId': self.folder_id})
             res = json.loads(r.text)
 
             if r.status_code != 200:
@@ -229,7 +186,7 @@ class Instance:
     @retry((ConnectionError, Timeout))
     def operation_status(self, operation_id):
         try:
-            r = requests.get(self.OPERATION_URL + operation_id, headers=self.headers)
+            r = requests.get(OPERATION_URL + operation_id, headers=self.headers)
             res = json.loads(r.text)
 
             if r.status_code != 200:
@@ -282,7 +239,7 @@ class Instance:
     @retry((ConnectionError, Timeout))
     def start(self):
         if self.status not in POSITIVE_STATES:
-            r = requests.post(self.COMPUTE_URL + f'{self.instance_id}:start', headers=self.headers)
+            r = requests.post(COMPUTE_URL + f'{self.instance_id}:start', headers=self.headers)
             res = json.loads(r.text)
 
             if r.status_code != 200:
@@ -300,7 +257,7 @@ class Instance:
     @retry((ConnectionError, Timeout))
     def restart(self):
         if self.status not in NEGATIVE_STATES:
-            r = requests.post(self.COMPUTE_URL + f'{self.instance_id}:restart', headers=self.headers)
+            r = requests.post(COMPUTE_URL + f'{self.instance_id}:restart', headers=self.headers)
             res = json.loads(r.text)
 
             if r.status_code != 200:
@@ -318,7 +275,7 @@ class Instance:
     @retry((ConnectionError, Timeout))
     def stop(self):
         if self.status not in NEGATIVE_STATES:
-            r = requests.post(self.COMPUTE_URL + f'{self.instance_id}:stop', headers=self.headers)
+            r = requests.post(COMPUTE_URL + f'{self.instance_id}:stop', headers=self.headers)
             res = json.loads(r.text)
 
             if r.status_code != 200:
@@ -340,7 +297,7 @@ class Instance:
             'diskId': self.boot_disk if disk_id is None else disk_id,
             'name': f'{self.name}-{self.call_time()}'
         }
-        r = requests.post(self.SNAP_URL, json=data, headers=self.headers)
+        r = requests.post(SNAP_URL, json=data, headers=self.headers)
         res = json.loads(r.text)
 
         if r.status_code == 429:
@@ -364,7 +321,7 @@ class Instance:
         snapshot = data.get('id') if snapshot_id is None else snapshot_id
         snapshot_name = data.get('name') if snapshot_id is None else snapshot_id
 
-        r = requests.delete(self.SNAP_URL + snapshot, headers=self.headers)
+        r = requests.delete(SNAP_URL + snapshot, headers=self.headers)
         res = json.loads(r.text)
 
         if r.status_code != 200:
