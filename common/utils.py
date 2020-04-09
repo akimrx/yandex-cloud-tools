@@ -18,7 +18,8 @@ from requests.exceptions import ConnectionError, Timeout
 logger = logging.getLogger(__name__)
 
 SERVERLESS = False  # later
-
+NEGATIVE_STATES = ['STOPPED', 'STOPPING', 'ERROR', 'CRASHED']
+POSITIVE_STATES = ['RUNNING', 'PROVISIONING', 'CREATING']
 
 class Config:
 
@@ -280,7 +281,7 @@ class Instance:
 
     @retry((ConnectionError, Timeout))
     def start(self):
-        if self.status != 'RUNNING':
+        if self.status not in POSITIVE_STATES:
             r = requests.post(self.COMPUTE_URL + f'{self.instance_id}:start', headers=self.headers)
             res = json.loads(r.text)
 
@@ -295,9 +296,28 @@ class Instance:
         else:
             logger.warning(f'Instance {self.name} has an invalid state for this operation.')
 
+
+    @retry((ConnectionError, Timeout))
+    def restart(self):
+        if self.status not in NEGATIVE_STATES:
+            r = requests.post(self.COMPUTE_URL + f'{self.instance_id}:restart', headers=self.headers)
+            res = json.loads(r.text)
+
+            if r.status_code != 200:
+                logger.error(f'{r.status_code} Error in restart_vm: {res["message"]}')
+
+            else:
+                logger.info(f'Restarting instance {self.name} ({self.instance_id})')
+                # Return operation ID
+                return res.get('id')
+
+        else:
+            logger.warning(f'Instance {self.name} has an invalid state for this operation.')
+
+
     @retry((ConnectionError, Timeout))
     def stop(self):
-        if self.status != 'STOPPED':
+        if self.status not in NEGATIVE_STATES:
             r = requests.post(self.COMPUTE_URL + f'{self.instance_id}:stop', headers=self.headers)
             res = json.loads(r.text)
 
@@ -336,13 +356,20 @@ class Instance:
             return res.get('id')
 
     @retry((ConnectionError, Timeout))
-    def delete_snapshot(self, data=None):
-        r = requests.delete(self.SNAP_URL + data["id"], headers=self.headers)
+    def delete_snapshot(self, data=None, snapshot_id=None):
+        if not data and not snapshot_id:
+            logging.error('dict data or snapshot_id required')
+            return
+
+        snapshot = data.get('id') if snapshot_id is None else snapshot_id
+        snapshot_name = data.get('name') if snapshot_id is None else snapshot_id
+
+        r = requests.delete(self.SNAP_URL + snapshot, headers=self.headers)
         res = json.loads(r.text)
 
         if r.status_code != 200:
-            logger.error(f'{r.status_code} Error in delete_snapshot: {res["message"]}')
+            logger.error(f'{r.status_code} Error in delete_snapshot: {res.get("message")}')
         else:
-            logger.info(f'Starting delete snapshot {data["name"]}')
+            logger.info(f'Starting delete snapshot {snapshot_name}')
             # Return operation ID
             return res.get('id')

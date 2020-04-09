@@ -23,12 +23,10 @@ logging.basicConfig(level=logging.INFO,
 
 logger = logging.getLogger(__name__)
 
-from common.utils import Config, Instance
+from common.utils import Config, Instance, NEGATIVE_STATES, POSITIVE_STATES
 from common.decorators import human_time
 
 STOPPED_INSTANCES = []
-NEGATIVE_STATES = ['STOPPED', 'STOPPING', 'ERROR', 'CRASHED']
-POSITIVE_STATES = ['RUNNING', 'PROVISIONING', 'CREATING']
 
 config = Config()
 
@@ -75,7 +73,7 @@ def snapshots_cleaner():
             continue
 
         for snapshot in snapshots:
-            delete_snap = vm.delete_snapshot(snapshot)
+            delete_snap = vm.delete_snapshot(data=snapshot)
             if vm.operation_complete(delete_snap):
                 continue
 
@@ -90,7 +88,7 @@ async def async_snapshots_cleaner(instance):
         return
 
     for snapshot in snapshots:
-        await vm.async_operation_complete(vm.delete_snapshot(snapshot))
+        await vm.async_operation_complete(vm.delete_snapshot(data=snapshot))
 
 
 def snapshots_creater():
