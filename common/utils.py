@@ -57,6 +57,26 @@ class Config:
 
 
 class Instance:
+
+    '''
+    Yandex Cloud Instance Model.
+
+    Attributes:
+      :folder_id: str
+      :name: str
+      :boot_disk: str
+      :secondary_disks: list
+      :status: str
+
+    Methods:
+      get_all_snapshots() -> return list of snapshots id
+      get_old_snapshots() -> return list of old snapshots id
+      start() -> return operation id as str
+      stop() -> return operation id as str
+      create_snapshot() -> return operation id as str
+      delete_snapshot() -> return operaion id as str 
+    '''
+
     config = Config()
 
     IAM_URL = 'https://iam.api.cloud.yandex.net/iam/v1/tokens'
@@ -119,6 +139,12 @@ class Instance:
     def boot_disk(self):
         boot_disk = self.instance_data['bootDisk']['diskId']
         return boot_disk
+
+    @property
+    def secondary_disks(self):
+        _disks = self.instance_data.get('secondaryDisks')
+        disks = [x.get('diskId') for x in _disks] if _disks else []
+        return disks
 
     @property
     def status(self):
@@ -273,10 +299,10 @@ class Instance:
             logger.warning(f'Instance {self.name} has an invalid state for this operation.')
 
     @retry((ConnectionError, Timeout))
-    def create_snapshot(self):
+    def create_snapshot(self, disk_id=None):
         data = {
             'folderId': self.folder_id,
-            'diskId': self.boot_disk,
+            'diskId': self.boot_disk if disk_id is None else disk_id,
             'name': f'{self.name}-{self.call_time()}'
         }
         r = requests.post(self.SNAP_URL, json=data, headers=self.headers)

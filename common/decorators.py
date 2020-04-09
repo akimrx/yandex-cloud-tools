@@ -5,7 +5,7 @@ from functools import wraps
 logger = logging.getLogger(__name__)
 
 
-def retry(exceptions, tries=4, delay=5, backoff=2, logger=True):
+def retry(exceptions, tries=4, delay=5, backoff=2, logs=True):
     def retry_decorator(func):
         @wraps(func)
         def func_retry(*args, **kwargs):
@@ -15,7 +15,7 @@ def retry(exceptions, tries=4, delay=5, backoff=2, logger=True):
                     return func(*args, **kwargs)
                 except exceptions as e:
                     msg = 'Network problems. Retrying in {} seconds...'.format(mdelay)
-                    if logger:
+                    if logs:
                         logger.warning(msg)
                     else:
                         print(msg)
