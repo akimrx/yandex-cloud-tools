@@ -1,5 +1,19 @@
 # Yandex Cloud Tools
 **Simple tools for [Yandex.Cloud](https://cloud.yandex.com)**
+  
+## Project Status
+
+**Since July 2020, this project is DEPRECATED**.  
+**Please pay attention to [python-yc-client](https://github.com/akimrx/python-yc-client)**
+  
+The reasons why the project is no longer supported are: 
+* legacy  
+* the development of a more convenient **[client for Yandex.Cloud](https://github.com/akimrx/python-yc-client)**.  
+  
+All the functionality that was implemented in this project **has been improved and transferred** to the **[examples](https://github.com/akimrx/python-yc-client/tree/master/examples)** for the new client:
+* **[Async Snapshotter](https://github.com/akimrx/python-yc-client/blob/master/examples/cron_snapshotter.py)**
+* **[Async Watchdog for preemptible instances](https://github.com/akimrx/python-yc-client/blob/master/examples/preemptible_watchdog.py)**
+  
 
 **Required Python 3.6+**
 
