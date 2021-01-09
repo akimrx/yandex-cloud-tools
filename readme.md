@@ -1,5 +1,6 @@
 # Yandex Cloud Tools
-**Simple tools for [Yandex.Cloud](https://cloud.yandex.com)**
+**Simple tools for [Yandex.Cloud](https://cloud.yandex.com)**  
+Required Python 3.6+
   
 ## Project Status
 
@@ -14,8 +15,6 @@ All the functionality that was implemented in this project **has been improved a
 * **[Async Snapshotter](https://github.com/akimrx/python-yc-client/blob/master/examples/cron_snapshotter.py)**
 * **[Async Watchdog for preemptible instances](https://github.com/akimrx/python-yc-client/blob/master/examples/preemptible_watchdog.py)**
   
-
-**Required Python 3.6+**
 
 ## Snapshotter (snaps.py)
 
