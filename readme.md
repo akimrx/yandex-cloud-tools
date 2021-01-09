@@ -1,4 +1,4 @@
-# Yandex Cloud Tools
+# Yandex Cloud Tools [DEPRECATED]
 **Simple tools for [Yandex.Cloud](https://cloud.yandex.com)**  
 Required Python 3.6+
   
